@@ -1,0 +1,9 @@
+{
+  "id": "para-llm-sync",
+  "name": "PARA LLM Sync",
+  "version": "1.0.0",
+  "minAppVersion": "1.7.2",
+  "description": "LLM-Wiki SOP 기반 저널 자동 지식 승격 플러그인",
+  "author": "jyha",
+  "isDesktopOnly": true
+}
