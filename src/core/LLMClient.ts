@@ -1,6 +1,9 @@
 // src/core/LLMClient.ts
 import type { LLMResponse } from "../types";
 import type { PluginSettings } from "../settings";
+import { GeminiClient } from "./GeminiClient";
+import { ClaudeClient } from "./ClaudeClient";
+import { OpenRouterClient } from "./OpenRouterClient";
 
 export interface LLMClient {
   complete(prompt: string, context: string): Promise<LLMResponse>;
@@ -45,6 +48,16 @@ export async function completeWithFallback(
 
 export function createLLMClientChain(settings: PluginSettings): LLMClient[] {
   const chain: LLMClient[] = [];
-  // 구현체는 Task 4에서 추가됨 — 여기서는 팩토리 뼈대만
+
+  if (settings.provider === "gemini" && settings.geminiApiKey) {
+    chain.push(new GeminiClient(settings.geminiApiKey, settings.geminiModel));
+  }
+  if (settings.claudeApiKey) {
+    chain.push(new ClaudeClient(settings.claudeApiKey, settings.claudeModel));
+  }
+  if (settings.openrouterApiKey) {
+    chain.push(new OpenRouterClient(settings.openrouterApiKey, settings.openrouterModel));
+  }
+
   return chain;
 }
