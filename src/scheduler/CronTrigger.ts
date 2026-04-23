@@ -6,6 +6,7 @@ export interface CronOptions {
   weeklyHour: number;
   onDaily: () => Promise<void>;
   onWeekly: () => Promise<void>;
+  onError?: (type: "daily" | "weekly", err: unknown) => void;
 }
 
 export class CronTrigger {
@@ -44,6 +45,7 @@ export class CronTrigger {
         await this.opts.onDaily();
       } catch (err) {
         console.error("[CronTrigger] onDaily 실패:", err);
+        this.opts.onError?.("daily", err);
       }
     }
 
@@ -58,6 +60,7 @@ export class CronTrigger {
         await this.opts.onWeekly();
       } catch (err) {
         console.error("[CronTrigger] onWeekly 실패:", err);
+        this.opts.onError?.("weekly", err);
       }
     }
   }

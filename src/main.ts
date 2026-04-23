@@ -125,7 +125,7 @@ export default class ParaLLMSyncPlugin extends Plugin {
       const notes = await Promise.all(
         paraFiles.map(async (f) => ({
           path: f.path,
-          content: await this.app.vault.cachedRead(f),
+          content: await this.app.vault.read(f),
           date: new Date().toISOString().slice(0, 10),
         }))
       );
@@ -158,6 +158,10 @@ export default class ParaLLMSyncPlugin extends Plugin {
       weeklyHour: this.settings.weeklyReviewHour,
       onDaily: () => this.runDailyDigest(),
       onWeekly: () => this.runWeeklyReview(),
+      onError: (type, err) => {
+        const msg = err instanceof Error ? err.message : String(err);
+        new Notice(`PARA LLM Sync: 자동 ${type === "daily" ? "Daily" : "Weekly"} 실패 — ${msg}\nCmd+P → Run ${type === "daily" ? "Daily Digest" : "Weekly Review"} 로 수동 실행하세요.`);
+      },
     });
     this.cron.start();
   }

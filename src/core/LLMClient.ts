@@ -42,7 +42,8 @@ export async function completeWithFallback(
       const response = await client.complete(prompt, context);
       return { response, provider: client.providerName };
     } catch (e) {
-      console.warn(`[para-llm-sync] ${client.providerName} 실패, Fallback 시도:`, e);
+      const msg = e instanceof Error ? e.message : String(e);
+      console.warn(`[para-llm-sync] ${client.providerName} 실패, Fallback 시도: ${msg}`);
     }
   }
   throw new Error("모든 LLM Provider 실패");

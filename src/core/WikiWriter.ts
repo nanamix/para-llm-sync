@@ -1,5 +1,6 @@
 // src/core/WikiWriter.ts
 import type { App } from "obsidian";
+import { TFile } from "obsidian";
 import type { LLMResponse } from "../types";
 import { FOLDER_MAP } from "../types";
 
@@ -102,14 +103,14 @@ export class IndexUpdater {
     const filename = result.filePath.split("/").pop()?.replace(".md", "") ?? "";
     const row = `| ${filename} | ${folder} | ${result.date} | ${result.classification} | active |`;
 
-    let file = this.app.vault.getAbstractFileByPath(indexPath);
-    if (!file) {
+    const abstract = this.app.vault.getAbstractFileByPath(indexPath);
+    if (!abstract || !(abstract instanceof TFile)) {
       const header = "| 파일명 | 폴더 | 날짜 | 분류 | 상태 |\n|---|---|---|---|---|\n";
       await this.app.vault.create(indexPath, header + row + "\n");
       return;
     }
-    const current = await this.app.vault.read(file as any);
-    await this.app.vault.modify(file as any, current + "\n" + row);
+    const current = await this.app.vault.read(abstract);
+    await this.app.vault.modify(abstract, current + "\n" + row);
   }
 
   async appendToOperationsLog(opts: {
@@ -134,18 +135,18 @@ export class IndexUpdater {
       `- Provider: ${opts.provider}`,
     ].join("\n");
 
-    let file = this.app.vault.getAbstractFileByPath(logPath);
-    if (!file) {
+    const abstract = this.app.vault.getAbstractFileByPath(logPath);
+    if (!abstract || !(abstract instanceof TFile)) {
       await this.app.vault.create(logPath, `# Operations Log\n${entry}\n`);
       return;
     }
-    const current = await this.app.vault.read(file as any);
+    const current = await this.app.vault.read(abstract);
     const firstSection = current.indexOf("\n## ");
     if (firstSection === -1) {
-      await this.app.vault.modify(file as any, current + entry);
+      await this.app.vault.modify(abstract, current + entry);
     } else {
       const updated = current.slice(0, firstSection) + entry + "\n" + current.slice(firstSection);
-      await this.app.vault.modify(file as any, updated);
+      await this.app.vault.modify(abstract, updated);
     }
   }
 }
