@@ -19,8 +19,10 @@ export const PROMOTION_PROMPT = `
   "title": "파일명에 쓸 간결한 제목 (한국어 또는 영어, 특수문자 제외)",
   "tags": ["tag1", "tag2"],
   "summary": "마크다운 형식의 본문 내용",
-  "backlinks": ["[[저널 파일 경로]]"]
+  "backlinks": ["[[9000_JOURNAL/2026/04/2026-04-23.md]]"]
 }
+
+중요: backlinks 배열의 각 항목은 반드시 [[ 와 ]] 로 감싸야 합니다. 순수 경로만 쓰면 안 됩니다.
 
 분류 기준:
 - concept: 이론, 패턴, 원칙, 운영 인사이트

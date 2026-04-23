@@ -132,17 +132,18 @@ export class ParaSettingsTab extends PluginSettingTab {
     new Setting(containerEl)
       .setName("Daily Digest 시각 (시)")
       .setDesc("0-23 사이 정수")
-      .addText((t) =>
-        t
-          .setValue(String(this.plugin.settings.dailyDigestHour))
-          .onChange(async (v) => {
-            const n = parseInt(v);
-            if (!isNaN(n) && n >= 0 && n <= 23) {
-              this.plugin.settings.dailyDigestHour = n;
-              await this.plugin.saveSettings();
-            }
-          })
-      );
+      .addText((t) => {
+        t.setValue(String(this.plugin.settings.dailyDigestHour)).onChange(async (v) => {
+          const n = parseInt(v);
+          const valid = !isNaN(n) && n >= 0 && n <= 23;
+          t.inputEl.style.borderColor = valid ? "" : "red";
+          if (valid) {
+            this.plugin.settings.dailyDigestHour = n;
+            await this.plugin.saveSettings();
+          }
+        });
+        return t;
+      });
 
     new Setting(containerEl)
       .setName("Weekly Review 요일")
@@ -160,17 +161,18 @@ export class ParaSettingsTab extends PluginSettingTab {
     new Setting(containerEl)
       .setName("Weekly Review 시각 (시)")
       .setDesc("0-23 사이 정수 (Daily Digest와 독립적으로 설정)")
-      .addText((t) =>
-        t
-          .setValue(String(this.plugin.settings.weeklyReviewHour))
-          .onChange(async (v) => {
-            const n = parseInt(v);
-            if (!isNaN(n) && n >= 0 && n <= 23) {
-              this.plugin.settings.weeklyReviewHour = n;
-              await this.plugin.saveSettings();
-            }
-          })
-      );
+      .addText((t) => {
+        t.setValue(String(this.plugin.settings.weeklyReviewHour)).onChange(async (v) => {
+          const n = parseInt(v);
+          const valid = !isNaN(n) && n >= 0 && n <= 23;
+          t.inputEl.style.borderColor = valid ? "" : "red";
+          if (valid) {
+            this.plugin.settings.weeklyReviewHour = n;
+            await this.plugin.saveSettings();
+          }
+        });
+        return t;
+      });
 
     new Setting(containerEl).setName("저널 경로").addText((t) =>
       t.setValue(this.plugin.settings.journalPath).onChange(async (v) => {

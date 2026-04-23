@@ -8,6 +8,7 @@ export class FileNamer {
     const folderName = folder.split("/").pop() ?? folder;
     const nums = existingPaths
       .filter((p) => p.includes(folderName + "/"))
+      .filter((p) => !/\/00_/.test(p))  // 00_Index.md 등 인덱스 파일 제외
       .map((p) => {
         const base = p.split("/").pop() ?? "";
         const m = base.match(/^(\d+)_/);
@@ -22,11 +23,12 @@ export class FileNamer {
 
 export class FrontmatterBuilder {
   static build(opts: { date: string; tags: string[]; status: string }): string {
+    const today = new Date().toISOString().slice(0, 10);
     const tagLines = opts.tags.map((t) => `  - ${t}`).join("\n");
     return [
       "---",
       `created: ${opts.date}`,
-      `updated: ${opts.date}`,
+      `updated: ${today}`,
       `tags:\n  - wiki\n${tagLines}`,
       `status: ${opts.status}`,
       "source: para-llm-sync",
