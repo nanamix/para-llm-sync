@@ -86,3 +86,57 @@ export class WikiWriter {
     }
   }
 }
+
+export class IndexUpdater {
+  constructor(private app: App, private wikiPath: string) {}
+
+  async appendToContentIndex(result: {
+    filePath: string;
+    classification: string;
+    date: string;
+  }): Promise<void> {
+    const indexPath = `${this.wikiPath}/02_Content-Index.md`;
+    const folder = result.filePath.split("/").slice(-2, -1)[0] ?? "";
+    const filename = result.filePath.split("/").pop()?.replace(".md", "") ?? "";
+    const row = `| ${filename} | ${folder} | ${result.date} | ${result.classification} | active |`;
+
+    const file = this.app.vault.getAbstractFileByPath(indexPath);
+    if (!file) return;
+    const current = await this.app.vault.read(file as any);
+    await this.app.vault.modify(file as any, current + "\n" + row);
+  }
+
+  async appendToOperationsLog(opts: {
+    date: string;
+    sources: string[];
+    created: string[];
+    skipped: number;
+    provider: string;
+  }): Promise<void> {
+    const logPath = `${this.wikiPath}/03_Operations-Log.md`;
+    const sourceLinks = opts.sources.map((s) => `  - [[${s}]]`).join("\n");
+    const createdList = opts.created.length > 0
+      ? opts.created.map((c) => `  - \`${c}\``).join("\n")
+      : "  - (없음)";
+
+    const entry = [
+      `\n## [${opts.date}] AutoSync | Daily Digest 실행`,
+      "",
+      `- Sources:\n${sourceLinks}`,
+      `- Created:\n${createdList}`,
+      `- Skipped: ${opts.skipped}건 (noise)`,
+      `- Provider: ${opts.provider}`,
+    ].join("\n");
+
+    const file = this.app.vault.getAbstractFileByPath(logPath);
+    if (!file) return;
+    const current = await this.app.vault.read(file as any);
+    const firstSection = current.indexOf("\n## ");
+    if (firstSection === -1) {
+      await this.app.vault.modify(file as any, current + entry);
+    } else {
+      const updated = current.slice(0, firstSection) + entry + "\n" + current.slice(firstSection);
+      await this.app.vault.modify(file as any, updated);
+    }
+  }
+}
