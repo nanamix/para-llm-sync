@@ -31,4 +31,10 @@ describe("NoteCollector", () => {
     const notes = await collector.collectJournal("2026-04-01", "2026-04-30");
     expect(notes).toHaveLength(1);
   });
+
+  it("PARA 폴더 노트는 수집되지 않는다", async () => {
+    const collector = new NoteCollector(mockApp as any, "9000_JOURNAL", 20);
+    const notes = await collector.collectJournal("2026-04-01", "2026-04-30");
+    expect(notes.every(n => !n.path.includes("1000_PROJECTS"))).toBe(true);
+  });
 });
