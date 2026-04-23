@@ -100,8 +100,12 @@ export class IndexUpdater {
     const filename = result.filePath.split("/").pop()?.replace(".md", "") ?? "";
     const row = `| ${filename} | ${folder} | ${result.date} | ${result.classification} | active |`;
 
-    const file = this.app.vault.getAbstractFileByPath(indexPath);
-    if (!file) return;
+    let file = this.app.vault.getAbstractFileByPath(indexPath);
+    if (!file) {
+      const header = "| 파일명 | 폴더 | 날짜 | 분류 | 상태 |\n|---|---|---|---|---|\n";
+      await this.app.vault.create(indexPath, header + row + "\n");
+      return;
+    }
     const current = await this.app.vault.read(file as any);
     await this.app.vault.modify(file as any, current + "\n" + row);
   }
@@ -128,8 +132,11 @@ export class IndexUpdater {
       `- Provider: ${opts.provider}`,
     ].join("\n");
 
-    const file = this.app.vault.getAbstractFileByPath(logPath);
-    if (!file) return;
+    let file = this.app.vault.getAbstractFileByPath(logPath);
+    if (!file) {
+      await this.app.vault.create(logPath, `# Operations Log\n${entry}\n`);
+      return;
+    }
     const current = await this.app.vault.read(file as any);
     const firstSection = current.indexOf("\n## ");
     if (firstSection === -1) {

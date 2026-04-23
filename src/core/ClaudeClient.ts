@@ -19,7 +19,11 @@ export class ClaudeClient implements LLMClient {
       messages: [{ role: "user", content: `${prompt}\n\n---\n\n${context}` }],
     });
 
-    const text = (msg.content[0] as { text: string }).text;
+    const block = msg.content[0];
+    if (!block || block.type !== "text") {
+      throw new Error(`Claude API: 예상치 못한 응답 타입 — ${block?.type ?? "empty"}`);
+    }
+    const text = block.text;
     const jsonMatch = text.match(/\{[\s\S]*\}/);
     if (!jsonMatch) throw new Error("Claude 응답에서 JSON을 찾을 수 없음");
 

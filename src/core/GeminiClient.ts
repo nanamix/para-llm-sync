@@ -10,7 +10,7 @@ export class GeminiClient implements LLMClient {
   }
 
   async complete(prompt: string, context: string): Promise<LLMResponse> {
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/${this.model}:generateContent?key=${this.apiKey}`;
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/${this.model}:generateContent`;
     const body = {
       contents: [{
         parts: [{ text: `${prompt}\n\n---\n\n${context}` }],
@@ -23,7 +23,10 @@ export class GeminiClient implements LLMClient {
 
     const res = await fetch(url, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        "x-goog-api-key": this.apiKey,
+      },
       body: JSON.stringify(body),
     });
 
