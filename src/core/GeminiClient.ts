@@ -15,7 +15,10 @@ export class GeminiClient implements LLMClient {
       contents: [{
         parts: [{ text: `${prompt}\n\n---\n\n${context}` }],
       }],
-      generationConfig: { responseMimeType: "application/json" },
+      generationConfig: {
+        responseMimeType: "application/json",
+        temperature: 0.2,
+      },
     };
 
     const res = await fetch(url, {

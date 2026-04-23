@@ -47,17 +47,19 @@ export async function completeWithFallback(
 }
 
 export function createLLMClientChain(settings: PluginSettings): LLMClient[] {
-  const chain: LLMClient[] = [];
+  const all: Record<string, LLMClient | null> = {
+    gemini: settings.geminiApiKey
+      ? new GeminiClient(settings.geminiApiKey, settings.geminiModel)
+      : null,
+    claude: settings.claudeApiKey
+      ? new ClaudeClient(settings.claudeApiKey, settings.claudeModel)
+      : null,
+    openrouter: settings.openrouterApiKey
+      ? new OpenRouterClient(settings.openrouterApiKey, settings.openrouterModel)
+      : null,
+  };
 
-  if (settings.provider === "gemini" && settings.geminiApiKey) {
-    chain.push(new GeminiClient(settings.geminiApiKey, settings.geminiModel));
-  }
-  if (settings.claudeApiKey) {
-    chain.push(new ClaudeClient(settings.claudeApiKey, settings.claudeModel));
-  }
-  if (settings.openrouterApiKey) {
-    chain.push(new OpenRouterClient(settings.openrouterApiKey, settings.openrouterModel));
-  }
-
-  return chain;
+  // 선택된 provider를 1순위로, 나머지를 Fallback으로 추가
+  const order = [settings.provider, ...["gemini", "claude", "openrouter"].filter((p) => p !== settings.provider)];
+  return order.map((p) => all[p]).filter((c): c is LLMClient => c !== null);
 }
