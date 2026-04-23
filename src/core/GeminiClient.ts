@@ -25,11 +25,22 @@ export class GeminiClient implements LLMClient {
     });
 
     if (!res.ok) {
-      throw new Error(`Gemini API error: ${res.status} ${await res.text()}`);
+      const errText = await res.text();
+      throw new Error(`Gemini API error: ${res.status} ${errText}`);
     }
 
     const data = await res.json();
+
+    if (!data.candidates || data.candidates.length === 0) {
+      throw new Error("Gemini API: 응답에 candidates가 없습니다 (안전 필터 또는 빈 응답)");
+    }
+
     const text = data.candidates[0].content.parts[0].text;
-    return JSON.parse(text) as LLMResponse;
+
+    try {
+      return JSON.parse(text) as LLMResponse;
+    } catch {
+      throw new Error(`Gemini API: JSON 파싱 실패 — 응답: ${text.slice(0, 200)}`);
+    }
   }
 }
