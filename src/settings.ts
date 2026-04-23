@@ -59,15 +59,17 @@ export class ParaSettingsTab extends PluginSettingTab {
           })
       );
 
-    new Setting(containerEl).setName("Gemini API Key").addText((t) =>
+    new Setting(containerEl).setName("Gemini API Key").addText((t) => {
+      t.inputEl.type = "password";
       t
         .setPlaceholder("AIza...")
         .setValue(this.plugin.settings.geminiApiKey)
         .onChange(async (v) => {
           this.plugin.settings.geminiApiKey = v;
           await this.plugin.saveSettings();
-        })
-    );
+        });
+      return t;
+    });
 
     new Setting(containerEl).setName("Gemini Model").addDropdown((d) =>
       d
@@ -79,15 +81,17 @@ export class ParaSettingsTab extends PluginSettingTab {
         })
     );
 
-    new Setting(containerEl).setName("Claude API Key").addText((t) =>
+    new Setting(containerEl).setName("Claude API Key").addText((t) => {
+      t.inputEl.type = "password";
       t
         .setPlaceholder("sk-ant-...")
         .setValue(this.plugin.settings.claudeApiKey)
         .onChange(async (v) => {
           this.plugin.settings.claudeApiKey = v;
           await this.plugin.saveSettings();
-        })
-    );
+        });
+      return t;
+    });
 
     new Setting(containerEl).setName("Claude Model").addDropdown((d) =>
       d
@@ -99,15 +103,17 @@ export class ParaSettingsTab extends PluginSettingTab {
         })
     );
 
-    new Setting(containerEl).setName("OpenRouter API Key").addText((t) =>
+    new Setting(containerEl).setName("OpenRouter API Key").addText((t) => {
+      t.inputEl.type = "password";
       t
         .setPlaceholder("sk-or-...")
         .setValue(this.plugin.settings.openrouterApiKey)
         .onChange(async (v) => {
           this.plugin.settings.openrouterApiKey = v;
           await this.plugin.saveSettings();
-        })
-    );
+        });
+      return t;
+    });
 
     new Setting(containerEl)
       .setName("OpenRouter Model")
