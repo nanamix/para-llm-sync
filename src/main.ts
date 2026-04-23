@@ -147,5 +147,18 @@ export default class ParaLLMSyncPlugin extends Plugin {
 
   async saveSettings(): Promise<void> {
     await this.saveData(this.settings);
+    this.restartCron();
+  }
+
+  private restartCron(): void {
+    this.cron?.stop();
+    this.cron = new CronTrigger({
+      dailyHour: this.settings.dailyDigestHour,
+      weeklyDay: this.settings.weeklyReviewDay,
+      weeklyHour: this.settings.weeklyReviewHour,
+      onDaily: () => this.runDailyDigest(),
+      onWeekly: () => this.runWeeklyReview(),
+    });
+    this.cron.start();
   }
 }

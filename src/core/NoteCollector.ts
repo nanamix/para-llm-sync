@@ -18,6 +18,7 @@ export class NoteCollector {
         const date = dateMatch[1];
         return date >= fromDate && date <= toDate;
       })
+      .sort((a, b) => b.basename.localeCompare(a.basename))
       .slice(0, this.maxNotes);
 
     const notes: CollectedNote[] = [];
