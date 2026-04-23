@@ -54,6 +54,9 @@ export default class ParaLLMSyncPlugin extends Plugin {
 
   private buildPipeline(): PromotionPipeline {
     const chain = createLLMClientChain(this.settings);
+    if (chain.length === 0) {
+      throw new Error("API 키가 설정되지 않았습니다. 플러그인 설정을 확인하세요.");
+    }
     const writer = new WikiWriter(this.app, this.settings.wikiPath);
     const indexUpdater = new IndexUpdater(this.app, this.settings.wikiPath);
     return new PromotionPipeline(chain, writer, indexUpdater);
