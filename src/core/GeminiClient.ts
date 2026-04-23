@@ -41,7 +41,10 @@ export class GeminiClient implements LLMClient {
       throw new Error("Gemini API: 응답에 candidates가 없습니다 (안전 필터 또는 빈 응답)");
     }
 
-    const text = data.candidates[0].content.parts[0].text;
+    const text = data.candidates[0]?.content?.parts?.[0]?.text;
+    if (typeof text !== "string") {
+      throw new Error("Gemini API: 응답 구조가 예상과 다릅니다 (content/parts 없음)");
+    }
 
     try {
       return JSON.parse(text) as LLMResponse;

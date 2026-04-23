@@ -191,16 +191,17 @@ export class ParaSettingsTab extends PluginSettingTab {
     new Setting(containerEl)
       .setName("최대 처리 노트 수")
       .setDesc("API 비용 제한 (기본 20)")
-      .addText((t) =>
-        t
-          .setValue(String(this.plugin.settings.maxNotesPerRun))
-          .onChange(async (v) => {
-            const n = parseInt(v);
-            if (!isNaN(n) && n > 0) {
-              this.plugin.settings.maxNotesPerRun = n;
-              await this.plugin.saveSettings();
-            }
-          })
-      );
+      .addText((t) => {
+        t.setValue(String(this.plugin.settings.maxNotesPerRun)).onChange(async (v) => {
+          const n = parseInt(v);
+          const valid = !isNaN(n) && n > 0;
+          t.inputEl.style.borderColor = valid ? "" : "red";
+          if (valid) {
+            this.plugin.settings.maxNotesPerRun = n;
+            await this.plugin.saveSettings();
+          }
+        });
+        return t;
+      });
   }
 }

@@ -74,4 +74,40 @@ describe("PromotionPipeline", () => {
     expect(noiseWriter.write).toHaveBeenCalledTimes(1);
     expect(mockIndexUpdater.appendToContentIndex).not.toHaveBeenCalled();
   });
+
+  it("여러 노트 중 하나가 LLM 실패해도 나머지는 계속 처리된다", async () => {
+    const partialFailChain = [
+      {
+        providerName: "Gemini gemini-2.0-flash",
+        complete: jest.fn()
+          .mockRejectedValueOnce(new Error("API 실패"))
+          .mockResolvedValue({
+            classification: "concept",
+            title: "두 번째 노트",
+            tags: [],
+            summary: "내용",
+            backlinks: [],
+          }),
+      },
+    ];
+
+    const pipeline = new PromotionPipeline(
+      partialFailChain as any,
+      mockWikiWriter as any,
+      mockIndexUpdater as any
+    );
+
+    const result = await pipeline.run(
+      [
+        { path: "9000_JOURNAL/2026/04/2026-04-23.md", content: "실패할 노트", date: "2026-04-23" },
+        { path: "9000_JOURNAL/2026/04/2026-04-24.md", content: "성공할 노트", date: "2026-04-24" },
+      ],
+      "2026-04-24"
+    );
+
+    expect(result.created).toHaveLength(1);
+    expect(result.skipped).toBe(1);
+    expect(mockIndexUpdater.appendToContentIndex).toHaveBeenCalledTimes(1);
+    expect(mockIndexUpdater.appendToOperationsLog).toHaveBeenCalledTimes(1);
+  });
 });
