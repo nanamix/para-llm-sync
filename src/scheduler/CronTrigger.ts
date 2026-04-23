@@ -3,6 +3,7 @@
 export interface CronOptions {
   dailyHour: number;
   weeklyDay: number;
+  weeklyHour: number;
   onDaily: () => Promise<void>;
   onWeekly: () => Promise<void>;
 }
@@ -48,7 +49,7 @@ export class CronTrigger {
 
     if (
       now.getDay() === this.opts.weeklyDay &&
-      now.getHours() === this.opts.dailyHour &&
+      now.getHours() === this.opts.weeklyHour &&
       now.getMinutes() === 0 &&
       this.lastWeeklyRun !== weekKey
     ) {

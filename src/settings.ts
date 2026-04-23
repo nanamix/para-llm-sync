@@ -13,6 +13,7 @@ export interface PluginSettings {
   openrouterModel: string;
   dailyDigestHour: number;    // 0-23
   weeklyReviewDay: number;    // 0=일요일
+  weeklyReviewHour: number;   // 0-23, Weekly 전용 시각
   journalPath: string;
   wikiPath: string;
   maxNotesPerRun: number;
@@ -28,6 +29,7 @@ export const DEFAULT_SETTINGS: PluginSettings = {
   openrouterModel: "openai/gpt-4o",
   dailyDigestHour: 23,
   weeklyReviewDay: 0,
+  weeklyReviewHour: 23,
   journalPath: "9000_JOURNAL",
   wikiPath: "LLM-Wiki",
   maxNotesPerRun: 20,
@@ -152,6 +154,21 @@ export class ParaSettingsTab extends PluginSettingTab {
           .onChange(async (v) => {
             this.plugin.settings.weeklyReviewDay = parseInt(v);
             await this.plugin.saveSettings();
+          })
+      );
+
+    new Setting(containerEl)
+      .setName("Weekly Review 시각 (시)")
+      .setDesc("0-23 사이 정수 (Daily Digest와 독립적으로 설정)")
+      .addText((t) =>
+        t
+          .setValue(String(this.plugin.settings.weeklyReviewHour))
+          .onChange(async (v) => {
+            const n = parseInt(v);
+            if (!isNaN(n) && n >= 0 && n <= 23) {
+              this.plugin.settings.weeklyReviewHour = n;
+              await this.plugin.saveSettings();
+            }
           })
       );
 

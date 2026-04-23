@@ -42,6 +42,7 @@ export default class ParaLLMSyncPlugin extends Plugin {
     this.cron = new CronTrigger({
       dailyHour: this.settings.dailyDigestHour,
       weeklyDay: this.settings.weeklyReviewDay,
+      weeklyHour: this.settings.weeklyReviewHour,
       onDaily: () => this.runDailyDigest(),
       onWeekly: () => this.runWeeklyReview(),
     });
@@ -91,6 +92,11 @@ export default class ParaLLMSyncPlugin extends Plugin {
     try {
       const collector = new NoteCollector(this.app, this.settings.journalPath, this.settings.maxNotesPerRun);
       const notes = await collector.collectJournal(fromDate, toDate);
+      if (notes.length === 0) {
+        new Notice("이번 주 저널 노트가 없습니다.");
+        this.statusBar?.setDone(0, 0);
+        return;
+      }
       const result = await this.buildPipeline().run(notes, toDate);
       new Notice(`Weekly Review 완료: ${result.created.length}건 생성`);
       this.statusBar?.setDone(result.created.length, result.skipped);
@@ -102,7 +108,37 @@ export default class ParaLLMSyncPlugin extends Plugin {
   }
 
   async runPARAAnalysis(): Promise<void> {
-    new Notice("PARA Analysis는 준비 중입니다.");
+    this.statusBar?.setRunning(this.settings.provider);
+    try {
+      const paraFolders = ["1000_PROJECTS", "2000_AREAS", "3000_RESOURCES", "4000_ARCHIVES"];
+      const allFiles = this.app.vault.getMarkdownFiles();
+      const paraFiles = allFiles
+        .filter((f) => paraFolders.some((folder) => f.path.startsWith(folder + "/")))
+        .slice(0, this.settings.maxNotesPerRun);
+
+      if (paraFiles.length === 0) {
+        new Notice("PARA 폴더에 노트가 없습니다.");
+        this.statusBar?.setDone(0, 0);
+        return;
+      }
+
+      const notes = await Promise.all(
+        paraFiles.map(async (f) => ({
+          path: f.path,
+          content: await this.app.vault.cachedRead(f),
+          date: new Date().toISOString().slice(0, 10),
+        }))
+      );
+
+      const today = new Date().toISOString().slice(0, 10);
+      const result = await this.buildPipeline().run(notes, today);
+      new Notice(`PARA Analysis 완료: ${result.created.length}건 승격`);
+      this.statusBar?.setDone(result.created.length, result.skipped);
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e);
+      new Notice(`PARA LLM Sync 오류: ${msg}`);
+      this.statusBar?.setError(msg);
+    }
   }
 
   async loadSettings(): Promise<void> {
