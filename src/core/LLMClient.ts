@@ -37,9 +37,12 @@ export async function completeWithFallback(
   prompt: string,
   context: string
 ): Promise<{ response: LLMResponse; provider: string }> {
+  console.log(`[para-llm-sync] chain 길이: ${chain.length}, providers: ${chain.map(c => c.providerName).join(", ")}`);
   for (const client of chain) {
     try {
+      console.log(`[para-llm-sync] ${client.providerName} 호출 시작`);
       const response = await client.complete(prompt, context);
+      console.log(`[para-llm-sync] ${client.providerName} 성공`);
       return { response, provider: client.providerName };
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
