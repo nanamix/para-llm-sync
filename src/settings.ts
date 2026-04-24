@@ -1,16 +1,19 @@
 import { App, PluginSettingTab, Setting } from "obsidian";
 import type ParaLLMSyncPlugin from "./main";
 
-export type LLMProvider = "gemini" | "claude" | "openrouter";
+export type LLMProvider = "gemini" | "gemini-oauth" | "claude" | "openrouter" | "openai";
 
 export interface PluginSettings {
   provider: LLMProvider;
   geminiApiKey: string;
   geminiModel: string;
+  geminiServiceAccountJson: string;
   claudeApiKey: string;
   claudeModel: string;
   openrouterApiKey: string;
   openrouterModel: string;
+  openaiApiKey: string;
+  openaiModel: string;
   dailyDigestHour: number;    // 0-23
   weeklyReviewDay: number;    // 0=일요일
   weeklyReviewHour: number;   // 0-23, Weekly 전용 시각
@@ -23,10 +26,13 @@ export const DEFAULT_SETTINGS: PluginSettings = {
   provider: "gemini",
   geminiApiKey: "",
   geminiModel: "gemini-2.0-flash",
+  geminiServiceAccountJson: "",
   claudeApiKey: "",
   claudeModel: "claude-sonnet-4-6",
   openrouterApiKey: "",
   openrouterModel: "openai/gpt-4o",
+  openaiApiKey: "",
+  openaiModel: "gpt-4o",
   dailyDigestHour: 23,
   weeklyReviewDay: 0,
   weeklyReviewHour: 23,
@@ -53,7 +59,7 @@ export class ParaSettingsTab extends PluginSettingTab {
       .setDesc("기본 LLM Provider (Gemini 권장)")
       .addDropdown((d) =>
         d
-          .addOptions({ gemini: "Gemini", claude: "Claude", openrouter: "OpenRouter" })
+          .addOptions({ gemini: "Gemini (API Key)", "gemini-oauth": "Gemini (Service Account)", claude: "Claude", openrouter: "OpenRouter", openai: "OpenAI" })
           .setValue(this.plugin.settings.provider)
           .onChange(async (v) => {
             this.plugin.settings.provider = v as LLMProvider;
@@ -75,13 +81,35 @@ export class ParaSettingsTab extends PluginSettingTab {
 
     new Setting(containerEl).setName("Gemini Model").addDropdown((d) =>
       d
-        .addOptions({ "gemini-2.0-flash": "gemini-2.0-flash", "gemini-1.5-pro": "gemini-1.5-pro" })
+        .addOptions({
+          "gemini-2.0-flash": "gemini-2.0-flash",
+          "gemini-1.5-flash": "gemini-1.5-flash",
+          "gemini-1.5-pro": "gemini-1.5-pro",
+        })
         .setValue(this.plugin.settings.geminiModel)
         .onChange(async (v) => {
           this.plugin.settings.geminiModel = v;
           await this.plugin.saveSettings();
         })
     );
+
+    new Setting(containerEl)
+      .setName("Gemini Service Account JSON")
+      .setDesc("Google Cloud Service Account 키 JSON (gemini-oauth 사용 시). Vertex AI API 활성화 필요.")
+      .addTextArea((t) => {
+        t.inputEl.rows = 4;
+        t.inputEl.style.width = "100%";
+        t.inputEl.style.fontFamily = "monospace";
+        t.inputEl.style.fontSize = "10px";
+        t
+          .setPlaceholder('{"type":"service_account","project_id":"...","private_key":"...","client_email":"..."}')
+          .setValue(this.plugin.settings.geminiServiceAccountJson)
+          .onChange(async (v) => {
+            this.plugin.settings.geminiServiceAccountJson = v;
+            await this.plugin.saveSettings();
+          });
+        return t;
+      });
 
     new Setting(containerEl).setName("Claude API Key").addText((t) => {
       t.inputEl.type = "password";
@@ -128,6 +156,32 @@ export class ParaSettingsTab extends PluginSettingTab {
             await this.plugin.saveSettings();
           })
       );
+
+    new Setting(containerEl).setName("OpenAI API Key").addText((t) => {
+      t.inputEl.type = "password";
+      t
+        .setPlaceholder("sk-...")
+        .setValue(this.plugin.settings.openaiApiKey)
+        .onChange(async (v) => {
+          this.plugin.settings.openaiApiKey = v;
+          await this.plugin.saveSettings();
+        });
+      return t;
+    });
+
+    new Setting(containerEl).setName("OpenAI Model").addDropdown((d) =>
+      d
+        .addOptions({
+          "gpt-4o": "gpt-4o",
+          "gpt-4o-mini": "gpt-4o-mini",
+          "gpt-4-turbo": "gpt-4-turbo",
+        })
+        .setValue(this.plugin.settings.openaiModel)
+        .onChange(async (v) => {
+          this.plugin.settings.openaiModel = v;
+          await this.plugin.saveSettings();
+        })
+    );
 
     new Setting(containerEl)
       .setName("Daily Digest 시각 (시)")

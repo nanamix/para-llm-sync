@@ -2,8 +2,10 @@
 import type { LLMResponse } from "../types";
 import type { PluginSettings } from "../settings";
 import { GeminiClient } from "./GeminiClient";
+import { GeminiOAuthClient } from "./GeminiOAuthClient";
 import { ClaudeClient } from "./ClaudeClient";
 import { OpenRouterClient } from "./OpenRouterClient";
+import { OpenAIClient } from "./OpenAIClient";
 
 export interface LLMClient {
   complete(prompt: string, context: string): Promise<LLMResponse>;
@@ -53,19 +55,33 @@ export async function completeWithFallback(
 }
 
 export function createLLMClientChain(settings: PluginSettings): LLMClient[] {
+  const makeGeminiOAuth = (): LLMClient | null => {
+    if (!settings.geminiServiceAccountJson) return null;
+    try {
+      return new GeminiOAuthClient(settings.geminiServiceAccountJson, settings.geminiModel);
+    } catch {
+      return null;
+    }
+  };
+
   const all: Record<string, LLMClient | null> = {
     gemini: settings.geminiApiKey
       ? new GeminiClient(settings.geminiApiKey, settings.geminiModel)
       : null,
+    "gemini-oauth": makeGeminiOAuth(),
     claude: settings.claudeApiKey
       ? new ClaudeClient(settings.claudeApiKey, settings.claudeModel)
       : null,
     openrouter: settings.openrouterApiKey
       ? new OpenRouterClient(settings.openrouterApiKey, settings.openrouterModel)
       : null,
+    openai: settings.openaiApiKey
+      ? new OpenAIClient(settings.openaiApiKey, settings.openaiModel)
+      : null,
   };
 
   // 선택된 provider를 1순위로, 나머지를 Fallback으로 추가
-  const order = [settings.provider, ...["gemini", "claude", "openrouter"].filter((p) => p !== settings.provider)];
+  const providerOrder = ["gemini", "gemini-oauth", "claude", "openrouter", "openai"];
+  const order = [settings.provider, ...providerOrder.filter((p) => p !== settings.provider)];
   return order.map((p) => all[p]).filter((c): c is LLMClient => c !== null);
 }
