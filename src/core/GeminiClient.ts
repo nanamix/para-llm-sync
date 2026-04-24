@@ -10,7 +10,9 @@ export class GeminiClient implements LLMClient {
   }
 
   async complete(prompt: string, context: string): Promise<LLMResponse> {
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/${this.model}:generateContent`;
+    // gemini-2.x는 v1beta, gemini-1.5는 v1(stable) 사용
+    const apiVersion = this.model.startsWith("gemini-2") ? "v1beta" : "v1";
+    const url = `https://generativelanguage.googleapis.com/${apiVersion}/models/${this.model}:generateContent`;
     const body = {
       contents: [{
         parts: [{ text: `${prompt}\n\n---\n\n${context}` }],
