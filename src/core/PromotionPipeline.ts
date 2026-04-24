@@ -16,7 +16,9 @@ export class PromotionPipeline {
     let skipped = 0;
     let lastProvider = "unknown";
 
-    for (const note of notes) {
+    for (let i = 0; i < notes.length; i++) {
+      if (i > 0) await new Promise((r) => setTimeout(r, 500)); // Rate limit 방지
+      const note = notes[i];
       try {
         const { response, provider } = await completeWithFallback(
           this.chain,
