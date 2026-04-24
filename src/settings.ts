@@ -82,9 +82,13 @@ export class ParaSettingsTab extends PluginSettingTab {
     new Setting(containerEl).setName("Gemini Model").addDropdown((d) =>
       d
         .addOptions({
+          "gemini-2.5-pro": "gemini-2.5-pro (최고성능)",
           "gemini-2.5-flash": "gemini-2.5-flash (최신)",
+          "gemini-2.5-flash-lite": "gemini-2.5-flash-lite (경량)",
           "gemini-2.0-flash": "gemini-2.0-flash",
           "gemini-2.0-flash-lite": "gemini-2.0-flash-lite (저비용)",
+          "gemini-2.0-flash-001": "gemini-2.0-flash-001 (고정버전)",
+          "gemini-flash-latest": "gemini-flash-latest",
         })
         .setValue(this.plugin.settings.geminiModel)
         .onChange(async (v) => {
